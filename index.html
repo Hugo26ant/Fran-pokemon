@@ -2,80 +2,183 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Pokémon JS Edition</title>
+    <title>Pokémon JS - Showdown Style</title>
     <style>
-        body { background: #1a1a1a; color: white; font-family: 'Courier New', Courier, monospace; text-align: center; }
-        #game-screen { background: #000; border: 2px solid #444; padding: 20px; margin: 50px auto; width: 80%; max-width: 800px; height: 300px; overflow-y: auto; text-align: left; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
-        .btn-container { margin-top: 20px; }
-        .btn { padding: 12px 24px; color: white; border: none; cursor: pointer; margin: 5px; font-weight: bold; border-radius: 5px; transition: 0.3s; }
-        .btn-battle { background: #e74c3c; border-bottom: 4px solid #c0392b; }
-        .btn-save { background: #3498db; border-bottom: 4px solid #2980b9; }
-        .btn:active { transform: translateY(3px); border-bottom: none; }
-        .msg { margin: 5px 0; border-left: 3px solid #e74c3c; padding-left: 10px; }
+        :root { --bg: #2d2d2d; --panel: #1a1a1a; --accent: #4a90e2; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; flex-direction: column; align-items: center; margin: 0; }
+        
+        /* Contenedor Principal Estilo Showdown */
+        #game-container { width: 900px; margin-top: 20px; display: grid; grid-template-columns: 1fr 300px; gap: 10px; background: #000; padding: 10px; border-radius: 8px; border: 4px solid #444; }
+        
+        /* Área de Batalla Visual */
+        #battle-arena { height: 400px; background: linear-gradient(to bottom, #87CEEB 60%, #90EE90 60%); position: relative; border-radius: 4px; overflow: hidden; display: flex; justify-content: space-around; align-items: flex-end; padding-bottom: 50px; }
+        
+        /* Consola de Texto (Log) */
+        #battle-log { background: var(--panel); height: 400px; overflow-y: auto; padding: 10px; font-size: 14px; border: 1px solid #333; }
+        .log-entry { border-bottom: 1px solid #333; padding: 5px 0; color: #ccc; }
+        
+        /* Stats de Pokémon */
+        .poke-status { background: rgba(255,255,255,0.9); color: black; padding: 10px; border-radius: 5px; width: 180px; position: absolute; }
+        .enemy-status { top: 20px; left: 20px; }
+        .player-status { bottom: 100px; right: 20px; }
+        .hp-bar { height: 8px; background: #ddd; width: 100%; border-radius: 4px; margin-top: 5px; }
+        .hp-fill { height: 100%; background: #2ecc71; width: 100%; transition: 0.5s; }
+
+        /* Controles */
+        #controls { width: 900px; background: #333; padding: 15px; display: flex; justify-content: center; gap: 10px; border-radius: 0 0 8px 8px; }
+        .btn { padding: 15px 25px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; text-transform: uppercase; }
+        .btn-move { background: #f1c40f; color: black; }
+        .btn-system { background: #34495e; color: white; }
+        .btn:disabled { background: #777; cursor: not-allowed; }
     </style>
 </head>
 <body>
+
     <h1>Pokémon JS Edition</h1>
-    <div id="game-screen">
-        <p class="msg">> Sistema listo. Elige una opción...</p>
-    </div>
-    
-    <div class="btn-container">
-        <button class="btn btn-battle" onclick="iniciarCombate()">Luchar contra IA</button>
-        <button class="btn btn-save" onclick="exportarProgreso()">Guardar y Generar Código</button>
+
+    <div id="game-container">
+        <div id="battle-arena">
+            <!-- Estatus Enemigo -->
+            <div class="poke-status enemy-status">
+                <strong id="e-name">Rival</strong> <span id="e-lvl">Lv.5</span>
+                <div class="hp-bar"><div id="e-hp-fill" class="hp-fill"></div></div>
+            </div>
+
+            <!-- Visuales simples -->
+            <div id="e-sprite" style="font-size: 80px;">❓</div>
+            <div id="p-sprite" style="font-size: 100px;">🔥</div>
+
+            <!-- Estatus Jugador -->
+            <div class="poke-status player-status">
+                <strong id="p-name">Charmander</strong> <span id="p-lvl">Lv.5</span>
+                <div class="hp-bar"><div id="p-hp-fill" class="hp-fill"></div></div>
+                <small id="p-xp">XP: 0/125</small>
+            </div>
+        </div>
+
+        <div id="battle-log">
+            <div class="log-entry">Esperando combate...</div>
+        </div>
     </div>
 
-    <script>
-        // --- LÓGICA DEL JUEGO ---
-        const POKEMON_DATA = {
-            'Charmander': { hp: 39, atk: 52, type: 'Fuego', evolve: { level: 16, to: 'Charmeleon' }, moves: [{ lvl: 1, name: 'Arañazo' }, { lvl: 7, name: 'Ascuas' }] },
-            'Rowlet': { hp: 68, atk: 55, type: 'Planta', evolve: { level: 17, to: 'Dartrix' }, moves: [{ lvl: 1, name: 'Follaje' }, { lvl: 8, name: 'Impresionar' }] },
-            'Froakie': { hp: 41, atk: 56, type: 'Agua', evolve: { level: 16, to: 'Frogadier' }, moves: [{ lvl: 1, name: 'Destructor' }, { lvl: 5, name: 'Burbuja' }] }
-        };
+    <div id="controls">
+        <div id="move-buttons"></div>
+        <button class="btn btn-system" onclick="iniciarCombateIA()">Buscar Oponente</button>
+        <button class="btn btn-system" onclick="saveGame()">Guardar Código</button>
+    </div>
 
-        class Pokemon {
-            constructor(species, level = 5) {
-                this.species = species;
-                this.level = level;
-                this.maxHp = POKEMON_DATA[species].hp + (level * 2);
-                this.hp = this.maxHp;
+<script>
+// --- DATOS TÉCNICOS ---
+const DATA = {
+    'Charmander': { hp: 39, atk: 12, emoji: '🔥', evo: { lvl: 16, to: 'Charmeleon' }, moves: [{ lvl: 1, n: 'Arañazo', p: 40 }, { lvl: 7, n: 'Ascuas', p: 45 }] },
+    'Charmeleon': { hp: 58, atk: 18, emoji: '🦖', evo: { lvl: 36, to: 'Charizard' }, moves: [{ lvl: 1, n: 'Lanzallamas', p: 90 }] },
+    'Rowlet': { hp: 45, atk: 10, emoji: '🦉', evo: { lvl: 17, to: 'Dartrix' }, moves: [{ lvl: 1, n: 'Follaje', p: 40 }] },
+    'Froakie': { hp: 41, atk: 11, emoji: '🐸', evo: { lvl: 16, to: 'Frogadier' }, moves: [{ lvl: 1, n: 'Burbuja', p: 40 }] }
+};
+
+class Pokemon {
+    constructor(name, level) {
+        this.name = name;
+        this.level = level;
+        this.xp = 0;
+        this.maxHp = DATA[name].hp + (level * 3);
+        this.hp = this.maxHp;
+        this.atk = DATA[name].atk + level;
+    }
+
+    gainXp(amount) {
+        this.xp += amount;
+        let nextLevel = Math.pow(this.level, 3);
+        addLog(`${this.name} ganó ${amount} XP!`);
+        if(this.xp >= nextLevel) {
+            this.level++;
+            addLog(`¡Nivel subido a ${this.level}!`);
+            if(DATA[this.name].evo && this.level >= DATA[this.name].evo.lvl) {
+                this.name = DATA[this.name].evo.to;
+                addLog(`¡Evolucionó a ${this.name}!`);
             }
         }
+    }
+}
 
-        // Tu equipo inicial
-        let miEquipo = [new Pokemon('Charmander', 5)];
+// --- LÓGICA DE ESTADO ---
+let player = new Pokemon('Charmander', 5);
+let enemy = null;
+let turn = true;
 
-        // --- FUNCIONES DE LA INTERFAZ ---
-        function escribirEnPantalla(texto) {
-            const pantalla = document.getElementById('game-screen');
-            const nuevoMensaje = document.createElement('p');
-            nuevoMensaje.className = 'msg';
-            nuevoMensaje.innerText = `> ${texto}`;
-            pantalla.appendChild(nuevoMensaje);
-            pantalla.scrollTop = pantalla.scrollHeight; // Auto-scroll al final
+function addLog(msg) {
+    const log = document.getElementById('battle-log');
+    log.innerHTML += `<div class="log-entry">> ${msg}</div>`;
+    log.scrollTop = log.scrollHeight;
+}
+
+function updateUI() {
+    document.getElementById('p-name').innerText = player.name;
+    document.getElementById('p-lvl').innerText = `Lv.${player.level}`;
+    document.getElementById('p-hp-fill').style.width = `${(player.hp/player.maxHp)*100}%`;
+    document.getElementById('p-xp').innerText = `XP: ${player.xp}/${Math.pow(player.level, 3)}`;
+    document.getElementById('p-sprite').innerText = DATA[player.name].emoji;
+
+    if(enemy) {
+        document.getElementById('e-name').innerText = enemy.name;
+        document.getElementById('e-lvl').innerText = `Lv.${enemy.level}`;
+        document.getElementById('e-hp-fill').style.width = `${(enemy.hp/enemy.maxHp)*100}%`;
+        document.getElementById('e-sprite').innerText = DATA[enemy.name].emoji;
+    }
+}
+
+function iniciarCombateIA() {
+    const pokes = ['Rowlet', 'Froakie', 'Charmander'];
+    enemy = new Pokemon(pokes[Math.floor(Math.random()*3)], player.level);
+    addLog(`¡Aparece ${enemy.name} salvaje!`);
+    renderMoves();
+    updateUI();
+}
+
+function renderMoves() {
+    const container = document.getElementById('move-buttons');
+    container.innerHTML = "";
+    DATA[player.name].moves.forEach(m => {
+        if(player.level >= m.lvl) {
+            let b = document.createElement('button');
+            b.className = "btn btn-move";
+            b.innerText = m.n;
+            b.onclick = () => ejecutarTurno(m);
+            container.appendChild(b);
         }
+    });
+}
 
-        function iniciarCombate() {
-            escribirEnPantalla("Buscando oponente...");
-            setTimeout(() => {
-                const rivales = ['Rowlet', 'Froakie', 'Charmander'];
-                const randomRival = rivales[Math.floor(Math.random() * rivales.length)];
-                let rival = new Pokemon(randomRival, 5);
-                escribirEnPantalla(`¡Un ${rival.species} salvaje nivel ${rival.level} apareció!`);
-                escribirEnPantalla(`¡Tu ${miEquipo[0].species} se prepara para luchar!`);
-            }, 1000);
-        }
+function ejecutarTurno(move) {
+    if(!enemy || enemy.hp <= 0) return;
 
-        function exportarProgreso() {
-            const datos = {
-                equipo: miEquipo,
-                fecha: new Date().toLocaleDateString()
-            };
-            const codigo = btoa(JSON.stringify(datos)); // Encripta a Base64
-            escribirEnPantalla("PROGRESO GUARDADO LOCALMENTE.");
-            escribirEnPantalla("CÓDIGO DE DUELO: " + codigo);
-            alert("Copia este código para tu amigo:\n\n" + codigo);
-        }
-    </script>
+    // Ataque Jugador
+    let dmg = Math.floor(move.p * (player.atk / 20));
+    enemy.hp -= dmg;
+    addLog(`${player.name} usó ${move.n} e hizo ${dmg} de daño.`);
+    
+    if(enemy.hp <= 0) {
+        addLog(`¡${enemy.name} debilitado!`);
+        player.gainXp(enemy.level * 20);
+        enemy = null;
+    } else {
+        // Contraataque IA
+        setTimeout(() => {
+            let eDmg = Math.floor(40 * (enemy.atk / 20));
+            player.hp -= eDmg;
+            addLog(`${enemy.name} responde con un ataque de ${eDmg} de daño.`);
+            updateUI();
+        }, 600);
+    }
+    updateUI();
+}
+
+function saveGame() {
+    const code = btoa(JSON.stringify({p: player}));
+    alert("Código de equipo: " + code);
+}
+
+updateUI();
+</script>
 </body>
 </html>
