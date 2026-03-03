@@ -1,42 +1,80 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <title>Mi Juego Pokémon</title>
+    <meta charset="UTF-8">
+    <title>Pokémon JS Edition</title>
     <style>
-        body { background: #222; color: white; font-family: sans-serif; text-align: center; }
-        #game-console { background: #000; border: 2px solid #555; padding: 20px; margin: 20px auto; width: 80%; height: 300px; overflow-y: scroll; text-align: left; }
-        .btn { padding: 10px 20px; background: #e74c3c; color: white; border: none; cursor: pointer; margin: 5px; }
+        body { background: #1a1a1a; color: white; font-family: 'Courier New', Courier, monospace; text-align: center; }
+        #game-screen { background: #000; border: 2px solid #444; padding: 20px; margin: 50px auto; width: 80%; max-width: 800px; height: 300px; overflow-y: auto; text-align: left; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        .btn-container { margin-top: 20px; }
+        .btn { padding: 12px 24px; color: white; border: none; cursor: pointer; margin: 5px; font-weight: bold; border-radius: 5px; transition: 0.3s; }
+        .btn-battle { background: #e74c3c; border-bottom: 4px solid #c0392b; }
+        .btn-save { background: #3498db; border-bottom: 4px solid #2980b9; }
+        .btn:active { transform: translateY(3px); border-bottom: none; }
+        .msg { margin: 5px 0; border-left: 3px solid #e74c3c; padding-left: 10px; }
     </style>
 </head>
 <body>
     <h1>Pokémon JS Edition</h1>
-    <div id="game-console"></div>
-    <button class="btn" onclick="combateIA()">Luchar contra IA</button>
-    <button class="btn" onclick="guardar()">Guardar y Generar Código</button>
+    <div id="game-screen">
+        <p class="msg">> Sistema listo. Elige una opción...</p>
+    </div>
+    
+    <div class="btn-container">
+        <button class="btn btn-battle" onclick="iniciarCombate()">Luchar contra IA</button>
+        <button class="btn btn-save" onclick="exportarProgreso()">Guardar y Generar Código</button>
+    </div>
 
     <script>
-        // Aquí va todo el código que tienes en la imagen
-        // (Asegúrate de copiarlo íntegro dentro de estas etiquetas <script>)
-        
-        const log = (msg) => {
-            const consoleDiv = document.getElementById('game-console');
-            consoleDiv.innerHTML += `<p>> ${msg}</p>`;
-            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        // --- LÓGICA DEL JUEGO ---
+        const POKEMON_DATA = {
+            'Charmander': { hp: 39, atk: 52, type: 'Fuego', evolve: { level: 16, to: 'Charmeleon' }, moves: [{ lvl: 1, name: 'Arañazo' }, { lvl: 7, name: 'Ascuas' }] },
+            'Rowlet': { hp: 68, atk: 55, type: 'Planta', evolve: { level: 17, to: 'Dartrix' }, moves: [{ lvl: 1, name: 'Follaje' }, { lvl: 8, name: 'Impresionar' }] },
+            'Froakie': { hp: 41, atk: 56, type: 'Agua', evolve: { level: 16, to: 'Frogadier' }, moves: [{ lvl: 1, name: 'Destructor' }, { lvl: 5, name: 'Burbuja' }] }
         };
 
-        // Sobreescribimos el console.log para que lo veas en pantalla
-        console.log = log;
-
-        // Función de ejemplo para combate
-        function combateIA() {
-            log("Buscando oponente...");
-            let rival = new Pokemon('Rowlet', 5);
-            log(`¡Un ${rival.species} salvaje nivel ${rival.level} apareció!`);
+        class Pokemon {
+            constructor(species, level = 5) {
+                this.species = species;
+                this.level = level;
+                this.maxHp = POKEMON_DATA[species].hp + (level * 2);
+                this.hp = this.maxHp;
+            }
         }
 
-        function guardar() {
-            const multiCode = GameSave.save({ team: myTeam, name: "Entrenador1" });
-            alert("Código para tu amigo: " + multiCode);
+        // Tu equipo inicial
+        let miEquipo = [new Pokemon('Charmander', 5)];
+
+        // --- FUNCIONES DE LA INTERFAZ ---
+        function escribirEnPantalla(texto) {
+            const pantalla = document.getElementById('game-screen');
+            const nuevoMensaje = document.createElement('p');
+            nuevoMensaje.className = 'msg';
+            nuevoMensaje.innerText = `> ${texto}`;
+            pantalla.appendChild(nuevoMensaje);
+            pantalla.scrollTop = pantalla.scrollHeight; // Auto-scroll al final
+        }
+
+        function iniciarCombate() {
+            escribirEnPantalla("Buscando oponente...");
+            setTimeout(() => {
+                const rivales = ['Rowlet', 'Froakie', 'Charmander'];
+                const randomRival = rivales[Math.floor(Math.random() * rivales.length)];
+                let rival = new Pokemon(randomRival, 5);
+                escribirEnPantalla(`¡Un ${rival.species} salvaje nivel ${rival.level} apareció!`);
+                escribirEnPantalla(`¡Tu ${miEquipo[0].species} se prepara para luchar!`);
+            }, 1000);
+        }
+
+        function exportarProgreso() {
+            const datos = {
+                equipo: miEquipo,
+                fecha: new Date().toLocaleDateString()
+            };
+            const codigo = btoa(JSON.stringify(datos)); // Encripta a Base64
+            escribirEnPantalla("PROGRESO GUARDADO LOCALMENTE.");
+            escribirEnPantalla("CÓDIGO DE DUELO: " + codigo);
+            alert("Copia este código para tu amigo:\n\n" + codigo);
         }
     </script>
 </body>
