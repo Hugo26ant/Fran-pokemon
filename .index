@@ -1,0 +1,81 @@
+// --- BASE DE DATOS Y LÓGICA DE NIVEL ---
+const POKEMON_DATA = {
+    'Charmander': { hp: 39, atk: 52, type: 'Fuego', evolve: { level: 16, to: 'Charmeleon' }, moves: [{ lvl: 1, name: 'Arañazo' }, { lvl: 7, name: 'Ascuas' }] },
+    'Charmeleon': { hp: 58, atk: 64, type: 'Fuego', evolve: { level: 36, to: 'Charizard' }, moves: [{ lvl: 17, name: 'Furia Dragón' }] },
+    'Rowlet': { hp: 68, atk: 55, type: 'Planta', evolve: { level: 17, to: 'Dartrix' }, moves: [{ lvl: 1, name: 'Follaje' }, { lvl: 8, name: 'Impresionar' }] },
+    'Froakie': { hp: 41, atk: 56, type: 'Agua', evolve: { level: 16, to: 'Frogadier' }, moves: [{ lvl: 1, name: 'Destructor' }, { lvl: 5, name: 'Burbuja' }] }
+};
+
+class Pokemon {
+    constructor(species, level = 5) {
+        this.species = species;
+        this.level = level;
+        this.xp = 0;
+        this.maxHp = POKEMON_DATA[species].hp + (level * 2);
+        this.hp = this.maxHp;
+        this.moves = this.assignMoves();
+    }
+
+    assignMoves() {
+        return POKEMON_DATA[this.species].moves
+            .filter(m => m.lvl <= this.level)
+            .slice(-4).map(m => m.name);
+    }
+
+    gainXp(amount) {
+        this.xp += amount;
+        const nextLevelXp = Math.pow(this.level, 3); // Curva parabólica
+        if (this.xp >= nextLevelXp) {
+            this.levelUp();
+        }
+    }
+
+    levelUp() {
+        this.level++;
+        console.log(`${this.species} subió al nivel ${this.level}!`);
+        const data = POKEMON_DATA[this.species];
+        if (data.evolve && this.level >= data.evolve.level) {
+            this.evolve(data.evolve.to);
+        }
+    }
+
+    evolve(newSpecies) {
+        console.log(`¡Increíble! Tu ${this.species} evolucionó en ${newSpecies}`);
+        this.species = newSpecies;
+        this.maxHp = POKEMON_DATA[newSpecies].hp + (this.level * 2);
+    }
+}
+
+// --- SISTEMA DE GUARDADO Y MULTIJUGADOR ---
+const GameSave = {
+    save(player) {
+        localStorage.setItem('pokeSave', JSON.stringify(player));
+        return btoa(JSON.stringify(player)); // Genera código para amigo
+    },
+    load(code = null) {
+        const data = code ? JSON.parse(atob(code)) : JSON.parse(localStorage.getItem('pokeSave'));
+        return data;
+    }
+};
+
+// --- MOTOR DE COMBATE ---
+class Battle {
+    constructor(playerTeam, enemyTeam) {
+        this.pTeam = playerTeam;
+        this.eTeam = enemyTeam;
+    }
+
+    attack(attacker, defender, move) {
+        const damage = Math.floor((attacker.level * 2) / 5) + 10;
+        defender.hp -= damage;
+        console.log(`${attacker.species} usó ${move}! Daño: ${damage}`);
+    }
+}
+
+// --- INICIO DEL JUEGO ---
+let myTeam = [new Pokemon('Charmander', 5)];
+console.log("Starter seleccionado: Charmander Nivel 5");
+
+// Ejemplo: Guardar progreso y generar código para amigo
+const multiCode = GameSave.save({ team: myTeam, name: "Entrenador1" });
+console.log("Copia este código para tu amigo:", multiCode);
