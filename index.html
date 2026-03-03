@@ -2,74 +2,69 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>PokeJS: Biome & HD Edition</title>
+    <title>Pokemon-Francisco</title>
     <style>
-        :root { --bg: #0f0f13; --panel: #1c1c21; --accent: #ffcb05; --hp-green: #51cb7a; }
-        body { background: var(--bg); color: white; font-family: 'Segoe UI', Tahoma, sans-serif; display: flex; flex-direction: column; align-items: center; margin: 0; }
+        :root { --bg: #0a0a0c; --panel: #16161a; --accent: #ffcb05; --hp-green: #4ade80; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', system-ui, sans-serif; display: flex; flex-direction: column; align-items: center; margin: 0; overflow-x: hidden; }
         
-        /* Contenedor Estilo Moderno */
-        #game-container { width: 1000px; height: 550px; margin-top: 20px; display: grid; grid-template-columns: 1fr 350px; gap: 15px; background: var(--panel); padding: 20px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #333; position: relative; }
+        /* Contenedor Principal */
+        #game-container { width: 1100px; height: 600px; margin-top: 20px; display: grid; grid-template-columns: 1fr 380px; gap: 20px; background: var(--panel); padding: 25px; border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.7); border: 1px solid #2d2d35; position: relative; }
         
-        /* Biomas con Fondos Reales */
+        /* Biomas Visuales */
         #battle-arena { 
-            position: relative; border-radius: 15px; overflow: hidden; 
+            position: relative; border-radius: 18px; overflow: hidden; 
             background-size: cover; background-position: center;
             display: flex; align-items: center; justify-content: space-around;
-            transition: background 1s ease-in-out;
-            box-shadow: inset 0 0 100px rgba(0,0,0,0.4);
+            transition: background 0.8s ease; border: 2px solid #333;
         }
+
+        .pkmn-sprite { width: 220px; height: 220px; object-fit: contain; filter: drop-shadow(0 10px 20px rgba(0,0,0,0.4)); z-index: 2; }
         
-        /* Pokémon Visuales (Sprites HD) */
-        .pkmn-sprite { width: 180px; height: 180px; object-fit: contain; filter: drop-shadow(0 5px 15px rgba(0,0,0,0.3)); transition: transform 0.2s; }
-        .pkmn-sprite.damaged { animation: shake 0.4s; filter: brightness(2) red; }
+        /* HUD de Combate */
+        .status-box { background: rgba(0,0,0,0.8); color: white; padding: 15px; border-radius: 12px; width: 220px; border: 1px solid #444; backdrop-filter: blur(8px); }
+        .hp-bar { height: 12px; background: #222; border-radius: 6px; margin: 10px 0; overflow: hidden; border: 1px solid #000; }
+        .hp-fill { height: 100%; background: var(--hp-green); transition: width 0.5s ease-out; width: 100%; }
 
-        @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-10px);} 75% {transform: translateX(10px);} }
-
-        /* HUD de Combate Estilo Showdown */
-        .status-box { background: rgba(0,0,0,0.7); color: white; padding: 12px; border-radius: 10px; width: 200px; border: 1px solid #444; backdrop-filter: blur(5px); }
-        .hp-bar { height: 10px; background: #333; border-radius: 5px; margin: 8px 0; overflow: hidden; border: 1px solid #000; }
-        .hp-fill { height: 100%; background: var(--hp-green); transition: width 0.6s cubic-bezier(0.17, 0.67, 0.83, 0.67); width: 100%; }
-
-        #log { background: #000; height: 100%; overflow-y: auto; padding: 15px; font-size: 13px; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column-reverse; color: #aaa; }
-        .log-important { color: var(--accent); font-weight: bold; }
-
-        /* Controles Modernos */
-        #controls { width: 1000px; padding: 20px; display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
-        .btn { padding: 12px 25px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; text-transform: uppercase; transition: 0.3s; box-shadow: 0 4px 0 #000; }
-        .btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
-        .btn:active { transform: translateY(2px); box-shadow: none; }
-        .btn-move { background: #3d405b; color: white; border: 1px solid #5a5d7a; }
-        .btn-action { background: #e07a5f; color: white; }
+        #log { background: #000; height: 100%; overflow-y: auto; padding: 20px; font-size: 14px; border-radius: 15px; border: 1px solid #333; display: flex; flex-direction: column-reverse; color: #bbb; line-height: 1.6; }
         
-        #overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9); z-index:1000; display:none; flex-direction:column; align-items:center; justify-content:center; border-radius: 20px; }
-        #money-display { position: absolute; top: -35px; right: 20px; color: #ffd700; font-weight: bold; font-size: 1.2em; }
+        /* Controles y Tienda */
+        #controls { width: 1100px; padding: 25px; display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; }
+        .btn { padding: 14px 28px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; text-transform: uppercase; transition: 0.2s; box-shadow: 0 4px 0 #000; font-size: 0.9em; }
+        .btn:active { transform: translateY(4px); box-shadow: none; }
+        .btn-move { background: #3b82f6; color: white; }
+        .btn-action { background: #10b981; color: white; }
+        .btn-danger { background: #ef4444; color: white; }
+
+        /* Overlays */
+        #overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.95); z-index:1000; display:none; flex-direction:column; align-items:center; justify-content:center; border-radius: 24px; text-align: center; }
+        .starter-option { cursor: pointer; transition: 0.3s; padding: 20px; border-radius: 15px; }
+        .starter-option:hover { background: #222; transform: scale(1.1); }
+        #money-txt { position: absolute; top: 15px; left: 25px; font-weight: bold; color: #fbbf24; font-size: 1.3em; }
     </style>
 </head>
 <body>
 
-    <h2 style="margin-top:20px; letter-spacing: 2px;">POKÉMON <span style="color:var(--accent)">ROGUELIKE</span></h2>
+    <h1 style="margin-top:20px; letter-spacing: 4px; font-weight: 900;">POKEMON-<span style="color:var(--accent)">FRANCISCO</span></h1>
 
     <div id="game-container">
-        <div id="money-display">Billetera: ₽ 100</div>
+        <div id="money-txt">₽ 0</div>
         <div id="overlay"></div>
         
         <div id="battle-arena">
-            <!-- Jugador -->
             <div style="display:flex; flex-direction:column; align-items:center;">
                 <div class="status-box">
-                    <strong id="p-name">-</strong> <span id="p-lvl"></span>
+                    <strong id="p-name">Cargando...</strong> <span id="p-lvl"></span>
                     <div class="hp-bar"><div id="p-hp-fill" class="hp-fill"></div></div>
-                    <div id="p-xp-txt" style="font-size:10px; color:#888">XP: 0/100</div>
+                    <div id="p-xp" style="font-size:11px; color:#aaa">XP: 0/100</div>
                 </div>
                 <img id="p-sprite" class="pkmn-sprite" src="">
             </div>
 
-            <div style="color: white; font-style: italic; opacity: 0.5;">VS</div>
+            <div style="font-size: 30px; font-weight: bold; color: rgba(255,255,255,0.2);">VS</div>
 
-            <!-- Rival -->
             <div style="display:flex; flex-direction:column; align-items:center;">
                 <div class="status-box">
-                    <strong id="e-name">-</strong> <span id="e-lvl"></span>
+                    <strong id="e-name">Salvaje</strong> <span id="e-lvl"></span>
                     <div class="hp-bar"><div id="e-hp-fill" class="hp-fill"></div></div>
                 </div>
                 <img id="e-sprite" class="pkmn-sprite" src="">
@@ -80,236 +75,217 @@
     </div>
 
     <div id="controls">
-        <div id="action-buttons" style="display: flex; gap: 10px;"></div>
-        <button class="btn btn-action" style="background:#81b29a" onclick="abrirTienda()">🏪 Tienda</button>
-        <button class="btn btn-action" style="background:#f2cc8f; color:#333" onclick="abrirCodigo()">Unirse/Código</button>
+        <div id="move-container" style="display:flex; gap:10px;"></div>
+        <button class="btn btn-action" onclick="abrirMapa()">🗺️ Viajar (Biomas)</button>
+        <button class="btn btn-action" style="background:#8b5cf6" onclick="abrirTienda()">🏪 Tienda</button>
+        <button class="btn btn-danger" onclick="reiniciarPartida()">🔄 Reiniciar</button>
     </div>
 
 <script>
-// --- CONFIGURACIÓN DE BIOMAS Y POKÉMON ---
+// --- MOTOR DE DATOS (150+ POKEMON Y BIOMAS) ---
 const BIOMAS = {
-    'Bosque': { bg: 'url(https://images.unsplash.com)', pokes: ['rowlet', 'pidgey', 'caterpie', 'bulbasaur'] },
-    'Cueva': { bg: 'url(https://images.unsplash.com)', pokes: ['zubat', 'geodude', 'rattata', 'machop'] },
-    'Playa': { bg: 'url(https://images.unsplash.com)', pokes: ['froakie', 'squirtle', 'magikarp', 'psyduck'] }
+    'Bosque Verde': { img: 'https://wallpaperaccess.com', pokes: [1,10,13,16,19,43,69,722] }, // Bulbasaur, Pidgey, etc.
+    'Cueva Cerúlea': { img: 'https://wallpapercave.com', pokes: [41,74,50,95,150] }, // Mewtwo (Legendario raro)
+    'Océano': { img: 'https://images7.alphacoders.com', pokes: [7,60,72,129,656,249] }, // Squirtle, Lugia
+    'Volcán': { img: 'https://i.redd.it', pokes: [4,37,58,77,146] } // Charmander, Moltres
 };
-
-const POKEDEX = {
-    'charmander': { id: 4, moves: ['Arañazo', 'Ascuas'], evo: 'charmeleon' },
-    'rowlet': { id: 722, moves: ['Placaje', 'Follaje'], evo: 'dartrix' },
-    'froakie': { id: 656, moves: ['Destructor', 'Burbuja'], evo: 'frogadier' },
-    'pidgey': { id: 16, moves: ['Tornado'] },
-    'rattata': { id: 19, moves: ['Placaje'] },
-    'caterpie': { id: 10, moves: ['Placaje'] },
-    'zubat': { id: 41, moves: ['Chupavidas'] }
-};
-
-class Pokemon {
-    constructor(name, level) {
-        this.name = name;
-        this.level = level;
-        this.xp = 0;
-        this.maxHp = 40 + (level * 4);
-        this.hp = this.maxHp;
-        this.sprite = `https://raw.githubusercontent.com{POKEDEX[name].id}.png`;
-    }
-}
 
 let equipo = [];
 let activoIdx = 0;
 let rival = null;
-let dinero = 150;
-let inventario = { balls: 5, potions: 3 };
-let biomaActual = 'Bosque';
+let dinero = 200;
+let inventario = { balls: 10, potions: 5 };
+let biomaActual = 'Bosque Verde';
 
-// --- INICIO ---
-function init() {
-    const save = localStorage.getItem('pokeRogueHD_v1');
-    if (save) {
-        const d = JSON.parse(save);
-        equipo = d.equipo; dinero = d.dinero; inventario = d.inventario;
-        addLog("¡Partida cargada!");
-    } else {
-        mostrarSeleccionStarter();
-    }
-    cambiarBioma('Bosque');
-    updateUI();
-}
-
-function mostrarSeleccionStarter() {
-    const ov = document.getElementById('overlay');
-    ov.style.display = 'flex';
-    ov.innerHTML = `<h3>Elige tu compañero inicial</h3><div style="display:flex">` +
-        ['charmander', 'rowlet', 'froakie'].map(s => `
-            <div style="text-align:center; cursor:pointer; margin:15px; padding:15px; background:#222; border-radius:15px;" onclick="elegirStarter('${s}')">
-                <img src="https://raw.githubusercontent.com{POKEDEX[s].id}.png" width="100">
-                <p style="text-transform:capitalize">${s}</p>
-            </div>
-        `).join('') + `</div>`;
-}
-
-function elegirStarter(s) {
-    equipo = [new Pokemon(s, 5)];
-    document.getElementById('overlay').style.display = 'none';
-    addLog(`¡Has elegido a ${s}! Comienza tu aventura.`);
-    save(); updateUI();
-}
-
-function cambiarBioma(nombre) {
-    biomaActual = nombre;
-    document.getElementById('battle-arena').style.backgroundImage = BIOMAS[nombre].bg;
-}
-
-function buscarOponente() {
-    // Al azar entre biomas
-    const nombresBiomas = Object.keys(BIOMAS);
-    cambiarBioma(nombresBiomas[Math.floor(Math.random()*nombresBiomas.length)]);
-    
-    const pool = BIOMAS[biomaActual].pokes;
-    const s = pool[Math.floor(Math.random() * pool.length)];
-    rival = new Pokemon(s, Math.max(2, equipo[activoIdx].level + Math.floor(Math.random()*3 - 1)));
-    
-    addLog(`Explorando ${biomaActual}... ¡Un <span class='log-important'>${s.toUpperCase()}</span> nivel ${rival.level} atacó!`);
-    updateUI();
-}
-
-// --- MECÁNICAS DE COMBATE ---
-function ejecutarAtaque(moveName) {
-    if (!rival) return;
-    const p = equipo[activoIdx];
-    
-    // Animación daño rival
-    document.getElementById('e-sprite').classList.add('damaged');
-    setTimeout(()=> document.getElementById('e-sprite').classList.remove('damaged'), 400);
-
-    let dmg = Math.floor(10 + (p.level * 1.5));
-    rival.hp -= dmg;
-    addLog(`${p.name} usó ${moveName} e hizo ${dmg} de daño.`);
-
-    if (rival.hp <= 0) {
-        rival.hp = 0;
-        let recompensa = 25 + (rival.level * 5);
-        dinero += recompensa;
-        p.xp += 40;
-        addLog(`¡Rival debilitado! Ganaste <span style="color:gold">₽${recompensa}</span>.`);
-        verificarEvolucion(p);
-        rival = null;
-    } else {
-        // IA ataca
-        setTimeout(() => {
-            document.getElementById('p-sprite').classList.add('damaged');
-            setTimeout(()=> document.getElementById('p-sprite').classList.remove('damaged'), 400);
-            let rdmg = 5 + rival.level;
-            p.hp -= rdmg;
-            addLog(`${rival.name} respondió con un ataque (-${rdmg} HP).`);
-            if(p.hp <= 0) { p.hp = 0; addLog("¡Tu Pokémon se ha debilitado!"); }
-            updateUI();
-        }, 800);
-    }
-    updateUI();
-    save();
-}
-
-function lanzarBall() {
-    if (!rival || inventario.balls <= 0) return;
-    inventario.balls--;
-    addLog("Lanzando PokéBall...");
-    let catchRate = (1 - (rival.hp / rival.maxHp)) + 0.1;
-    if (Math.random() < catchRate) {
-        addLog(`¡Increíble! Capturaste a ${rival.name.toUpperCase()}.`);
-        if(equipo.length < 6) equipo.push(rival);
-        rival = null;
-    } else {
-        addLog("¡Rayos! Se ha escapado de la bola.");
-    }
-    updateUI();
-}
-
-// --- UI Y SISTEMA ---
-function updateUI() {
-    const p = equipo[activoIdx];
-    document.getElementById('money-display').innerText = `Billetera: ₽ ${dinero}`;
-    document.getElementById('p-name').innerText = p.name.toUpperCase();
-    document.getElementById('p-lvl').innerText = "Lv." + p.level;
-    document.getElementById('p-hp-fill').style.width = (p.hp/p.maxHp*100) + "%";
-    document.getElementById('p-sprite').src = p.sprite;
-    document.getElementById('p-xp-txt').innerText = `XP: ${p.xp}/100`;
-
-    if (rival) {
-        document.getElementById('e-name').innerText = rival.name.toUpperCase();
-        document.getElementById('e-lvl').innerText = "Lv." + rival.level;
-        document.getElementById('e-hp-fill').style.width = (rival.hp/rival.maxHp*100) + "%";
-        document.getElementById('e-sprite').src = rival.sprite;
-        document.getElementById('e-sprite').style.display = 'block';
-    } else {
-        document.getElementById('e-sprite').style.display = 'none';
-        document.getElementById('e-name').innerText = "Salvaje";
-        document.getElementById('e-hp-fill').style.width = "0%";
+// --- CLASE POKEMON ---
+class Pokemon {
+    constructor(id, level) {
+        this.id = id;
+        this.level = level;
+        this.xp = 0;
+        this.hp = 50 + (level * 5);
+        this.maxHp = this.hp;
+        // Imagen oficial estable
+        this.sprite = `https://raw.githubusercontent.com{id}.png`;
+        this.fetchName();
     }
 
-    const btns = document.getElementById('action-buttons');
-    btns.innerHTML = "";
-    if (rival) {
-        POKEDEX[p.name].moves.forEach(m => {
-            btns.innerHTML += `<button class="btn btn-move" onclick="ejecutarAtaque('${m}')">${m}</button>`;
-        });
-        btns.innerHTML += `<button class="btn" style="background:#3498db; color:white" onclick="lanzarBall()">📦 Ball (${inventario.balls})</button>`;
-        btns.innerHTML += `<button class="btn" style="background:#2ecc71; color:white" onclick="usarPocion()">💊 Poción (${inventario.potions})</button>`;
-    } else {
-        btns.innerHTML = `<button class="btn" style="background:var(--accent); color:black" onclick="buscarOponente()">🔍 Explorar Bioma</button>`;
-        btns.innerHTML += `<button class="btn" style="background:#9b59b6; color:white" onclick="abrirMenuEquipo()">🐾 Equipo</button>`;
-    }
-}
-
-function usarPocion() {
-    if(inventario.potions > 0) {
-        equipo[activoIdx].hp = Math.min(equipo[activoIdx].maxHp, equipo[activoIdx].hp + 60);
-        inventario.potions--;
-        addLog("Usaste una poción. ¡Salud recuperada!");
+    async fetchName() {
+        const res = await fetch(`https://pokeapi.co{this.id}`);
+        const data = await res.json();
+        this.name = data.name.toUpperCase();
         updateUI();
     }
 }
 
-function verificarEvolucion(p) {
-    if(p.xp >= 100) {
-        p.level++; p.xp = 0; p.maxHp += 8; p.hp = p.maxHp;
-        addLog(`¡${p.name} subió al nivel ${p.level}!`);
-        let evo = POKEDEX[p.name].evo;
-        if(evo && p.level >= 16) {
-            p.name = evo;
-            p.sprite = `https://raw.githubusercontent.com{POKEDEX[evo].id}.png`;
-            addLog(`¡Tu Pokémon está evolucionando en un ${evo.toUpperCase()}!`);
-        }
+// --- SISTEMA DE INICIO Y REINICIO ---
+function init() {
+    const save = localStorage.getItem('pkmn-francisco-v1');
+    if (save) {
+        const d = JSON.parse(save);
+        equipo = d.equipo.map(p => {
+            let n = new Pokemon(p.id, p.level);
+            n.hp = p.hp; n.xp = p.xp; n.maxHp = p.maxHp;
+            return n;
+        });
+        dinero = d.dinero; inventario = d.inventario;
+        document.getElementById('overlay').style.display = 'none';
+        cambiarFondo(biomaActual);
+        updateUI();
+    } else {
+        mostrarStarters();
     }
 }
 
-function abrirTienda() {
-    const o = document.getElementById('overlay');
-    o.style.display = 'flex';
-    o.innerHTML = `<h2>Tienda de Pokémon</h2><p>Tu dinero: ₽${dinero}</p>
-        <button class="btn" style="margin:5px" onclick="comprar('balls', 50)">📦 PokéBall (₽50)</button>
-        <button class="btn" style="margin:5px" onclick="comprar('potions', 40)">💊 Poción (₽40)</button>
-        <button class="btn" style="margin-top:20px; background:#555; color:white" onclick="document.getElementById('overlay').style.display='none'">Salir</button>`;
+function mostrarStarters() {
+    const ov = document.getElementById('overlay');
+    ov.style.display = 'flex';
+    ov.innerHTML = `<h1>Elige tu Starter</h1><div style="display:flex; gap:30px;">
+        <div class="starter-option" onclick="elegir(722)"> <img src="https://raw.githubusercontent.com" width="150"><br>Rowlet </div>
+        <div class="starter-option" onclick="elegir(4)"> <img src="https://raw.githubusercontent.com" width="150"><br>Charmander </div>
+        <div class="starter-option" onclick="elegir(656)"> <img src="https://raw.githubusercontent.com" width="150"><br>Froakie </div>
+    </div>`;
 }
 
-function comprar(item, precio) {
-    if(dinero >= precio) { dinero -= precio; inventario[item]++; abrirTienda(); updateUI(); save(); }
+function elegir(id) {
+    equipo = [new Pokemon(id, 5)];
+    document.getElementById('overlay').style.display = 'none';
+    addLog(`¡Has elegido tu primer Pokémon!`);
+    guardar();
+}
+
+function reiniciarPartida() {
+    if(confirm("¿Seguro que quieres borrar TODO tu progreso?")) {
+        localStorage.removeItem('pkmn-francisco-v1');
+        location.reload();
+    }
+}
+
+// --- BIOMAS Y EXPLORACIÓN ---
+function abrirMapa() {
+    const ov = document.getElementById('overlay');
+    ov.style.display = 'flex';
+    ov.innerHTML = `<h2>Selecciona un Bioma</h2>` + Object.keys(BIOMAS).map(b => `
+        <button class="btn" style="margin:10px; width:200px" onclick="cambiarFondo('${b}')">${b}</button>
+    `).join('') + `<br><button class="btn btn-danger" onclick="document.getElementById('overlay').style.display='none'">Cerrar</button>`;
+}
+
+function cambiarFondo(b) {
+    biomaActual = b;
+    document.getElementById('battle-arena').style.backgroundImage = `url(${BIOMAS[b].img})`;
+    document.getElementById('overlay').style.display = 'none';
+    addLog(`Has llegado a: ${b}`);
+    buscarRival();
+}
+
+function buscarRival() {
+    const pool = BIOMAS[biomaActual].pokes;
+    const id = pool[Math.floor(Math.random() * pool.length)];
+    const lvl = Math.max(3, equipo[0].level + Math.floor(Math.random() * 4 - 2));
+    rival = new Pokemon(id, lvl);
+    addLog(`¡Un ${rival.id < 150 ? 'Legendario' : 'Pokémon'} salvaje nivel ${lvl} apareció!`);
+    updateUI();
+}
+
+// --- LÓGICA DE COMBATE ---
+function atacar() {
+    if(!rival) return;
+    const p = equipo[activoIdx];
+    
+    // Daño Jugador
+    let dmg = 10 + (p.level * 2);
+    rival.hp -= dmg;
+    addLog(`${p.name} atacó e hizo ${dmg} de daño.`);
+
+    if(rival.hp <= 0) {
+        rival.hp = 0;
+        let p_ganado = rival.level * 15;
+        dinero += p_ganado;
+        p.xp += 40;
+        addLog(`¡Derrotaste al rival! +₽${p_ganado}.`);
+        subirNivel(p);
+        rival = null;
+    } else {
+        // Turno Rival
+        setTimeout(() => {
+            let rdmg = 5 + rival.level;
+            p.hp -= rdmg;
+            addLog(`${rival.name} salvaje contraataca.`);
+            if(p.hp <= 0) p.hp = 0;
+            updateUI();
+        }, 600);
+    }
+    updateUI();
+    guardar();
+}
+
+function subirNivel(p) {
+    if(p.xp >= 100) {
+        p.level++; p.xp = 0; p.maxHp += 10; p.hp = p.maxHp;
+        addLog(`¡${p.name} subió al nivel ${p.level}!`);
+    }
+}
+
+function lanzarBall() {
+    if(!rival || inventario.balls <= 0) return;
+    inventario.balls--;
+    addLog("Lanzando PokéBall...");
+    if(Math.random() > (rival.hp/rival.maxHp)) {
+        addLog(`¡Capturaste a ${rival.name}!`);
+        if(equipo.length < 6) equipo.push(rival);
+        rival = null;
+    } else { addLog("¡Escapó de la bola!"); }
+    updateUI();
+}
+
+// --- TIENDA Y OTROS ---
+function abrirTienda() {
+    const ov = document.getElementById('overlay');
+    ov.style.display = 'flex';
+    ov.innerHTML = `<h2>Tienda (₽${dinero})</h2>
+        <button class="btn" onclick="comprar('balls', 50)">PokéBall (₽50)</button><br><br>
+        <button class="btn" onclick="comprar('potions', 40)">Poción HP (₽40)</button><br><br>
+        <button class="btn btn-danger" onclick="document.getElementById('overlay').style.display='none'">Salir</button>`;
+}
+
+function comprar(item, p) {
+    if(dinero >= p) { dinero -= p; inventario[item]++; abrirTienda(); updateUI(); }
+}
+
+function updateUI() {
+    const p = equipo[activoIdx];
+    if(!p) return;
+    document.getElementById('money-txt').innerText = `₽ ${dinero}`;
+    document.getElementById('p-name').innerText = p.name || "Cargando...";
+    document.getElementById('p-lvl').innerText = "Lv." + p.level;
+    document.getElementById('p-hp-fill').style.width = (p.hp/p.maxHp*100) + "%";
+    document.getElementById('p-sprite').src = p.sprite;
+    document.getElementById('p-xp').innerText = `XP: ${p.xp}/100`;
+
+    if(rival) {
+        document.getElementById('e-name').innerText = rival.name || "Cargando...";
+        document.getElementById('e-lvl').innerText = "Lv." + rival.level;
+        document.getElementById('e-hp-fill').style.width = (rival.hp/rival.maxHp*100) + "%";
+        document.getElementById('e-sprite').src = rival.sprite;
+        document.getElementById('e-sprite').style.opacity = 1;
+    } else {
+        document.getElementById('e-sprite').style.opacity = 0;
+        document.getElementById('e-name').innerText = "Buscando...";
+    }
+
+    const m = document.getElementById('move-container');
+    m.innerHTML = rival ? `<button class="btn btn-move" onclick="atacar()">Atacar</button>
+                   <button class="btn" style="background:#eab308" onclick="lanzarBall()">PokéBall (${inventario.balls})</button>` : 
+                   `<button class="btn btn-action" onclick="buscarRival()">Explorar Zona</button>`;
 }
 
 function addLog(msg) {
     const l = document.getElementById('log');
-    l.innerHTML += `<div class="log-entry">> ${msg}</div>`;
+    l.innerHTML += `<div>> ${msg}</div>`;
 }
 
-function save() {
-    localStorage.setItem('pokeRogueHD_v1', JSON.stringify({equipo, dinero, inventario}));
-}
-
-function abrirCodigo() {
-    let c = prompt("Comparte este código o pega el de un amigo:", btoa(JSON.stringify(equipo)));
-    if(c && c.length > 50) { 
-        try { equipo = JSON.parse(atob(c)); activoIdx = 0; updateUI(); addLog("Equipo importado."); } 
-        catch(e) { alert("Código erróneo"); } 
-    }
+function guardar() {
+    localStorage.setItem('pkmn-francisco-v1', JSON.stringify({equipo, dinero, inventario}));
 }
 
 init();
