@@ -2,183 +2,260 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Pokémon JS - Showdown Style</title>
+    <title>PokeJS: Rogue Edition</title>
     <style>
-        :root { --bg: #2d2d2d; --panel: #1a1a1a; --accent: #4a90e2; }
-        body { background: var(--bg); color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; flex-direction: column; align-items: center; margin: 0; }
-        
-        /* Contenedor Principal Estilo Showdown */
-        #game-container { width: 900px; margin-top: 20px; display: grid; grid-template-columns: 1fr 300px; gap: 10px; background: #000; padding: 10px; border-radius: 8px; border: 4px solid #444; }
-        
-        /* Área de Batalla Visual */
-        #battle-arena { height: 400px; background: linear-gradient(to bottom, #87CEEB 60%, #90EE90 60%); position: relative; border-radius: 4px; overflow: hidden; display: flex; justify-content: space-around; align-items: flex-end; padding-bottom: 50px; }
-        
-        /* Consola de Texto (Log) */
-        #battle-log { background: var(--panel); height: 400px; overflow-y: auto; padding: 10px; font-size: 14px; border: 1px solid #333; }
-        .log-entry { border-bottom: 1px solid #333; padding: 5px 0; color: #ccc; }
-        
-        /* Stats de Pokémon */
-        .poke-status { background: rgba(255,255,255,0.9); color: black; padding: 10px; border-radius: 5px; width: 180px; position: absolute; }
-        .enemy-status { top: 20px; left: 20px; }
-        .player-status { bottom: 100px; right: 20px; }
-        .hp-bar { height: 8px; background: #ddd; width: 100%; border-radius: 4px; margin-top: 5px; }
-        .hp-fill { height: 100%; background: #2ecc71; width: 100%; transition: 0.5s; }
-
-        /* Controles */
-        #controls { width: 900px; background: #333; padding: 15px; display: flex; justify-content: center; gap: 10px; border-radius: 0 0 8px 8px; }
-        .btn { padding: 15px 25px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; text-transform: uppercase; }
-        .btn-move { background: #f1c40f; color: black; }
-        .btn-system { background: #34495e; color: white; }
-        .btn:disabled { background: #777; cursor: not-allowed; }
+        :root { --bg: #1a1a1a; --panel: #2d2d2d; --accent: #ffcb05; --hp-green: #2ecc71; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; margin: 0; overflow: hidden; }
+        #game-container { width: 950px; height: 550px; margin-top: 20px; display: grid; grid-template-columns: 1fr 320px; gap: 10px; background: #000; padding: 15px; border-radius: 12px; border: 4px solid #444; position: relative; }
+        #battle-arena { background: linear-gradient(to bottom, #78c850 50%, #5da048 50%); position: relative; border-radius: 8px; overflow: hidden; border: 2px solid #333; display: flex; justify-content: space-around; align-items: flex-end; padding-bottom: 40px; }
+        #log { background: var(--panel); height: 100%; overflow-y: auto; padding: 10px; font-size: 13px; border-radius: 8px; border: 1px solid #444; }
+        .log-entry { margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid #3d3d3d; color: #eee; }
+        .status-box { background: rgba(255,255,255,0.9); color: #333; padding: 8px; border-radius: 5px; width: 180px; position: absolute; box-shadow: 2px 2px 10px rgba(0,0,0,0.3); }
+        .hp-bar { height: 6px; background: #ccc; border-radius: 3px; margin: 5px 0; }
+        .hp-fill { height: 100%; background: var(--hp-green); transition: 0.4s; width: 100%; }
+        #controls { width: 950px; background: #333; padding: 15px; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; border-radius: 0 0 12px 12px; }
+        .btn { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; min-width: 120px; transition: 0.2s; }
+        .btn-move { background: #f1c40f; } .btn-item { background: #3498db; color: white; } .btn-pkmn { background: #9b59b6; color: white; }
+        #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .starter-card { background: #444; padding: 20px; margin: 10px; border-radius: 10px; cursor: pointer; border: 2px solid transparent; }
+        .starter-card:hover { border-color: var(--accent); }
     </style>
 </head>
 <body>
 
-    <h1>Pokémon JS Edition</h1>
-
-    <div id="game-container">
-        <div id="battle-arena">
-            <!-- Estatus Enemigo -->
-            <div class="poke-status enemy-status">
-                <strong id="e-name">Rival</strong> <span id="e-lvl">Lv.5</span>
-                <div class="hp-bar"><div id="e-hp-fill" class="hp-fill"></div></div>
-            </div>
-
-            <!-- Visuales simples -->
-            <div id="e-sprite" style="font-size: 80px;">❓</div>
-            <div id="p-sprite" style="font-size: 100px;">🔥</div>
-
-            <!-- Estatus Jugador -->
-            <div class="poke-status player-status">
-                <strong id="p-name">Charmander</strong> <span id="p-lvl">Lv.5</span>
-                <div class="hp-bar"><div id="p-hp-fill" class="hp-fill"></div></div>
-                <small id="p-xp">XP: 0/125</small>
-            </div>
+<div id="game-container">
+    <div id="overlay"></div> <!-- Para selección de starter y menús -->
+    
+    <div id="battle-arena">
+        <div class="status-box" style="top:20px; left:20px;">
+            <strong id="e-name">-</strong> <span id="e-lvl"></span>
+            <div class="hp-bar"><div id="e-hp-fill" class="hp-fill"></div></div>
         </div>
-
-        <div id="battle-log">
-            <div class="log-entry">Esperando combate...</div>
+        <div id="e-sprite" style="font-size:80px"></div>
+        <div id="p-sprite" style="font-size:100px"></div>
+        <div class="status-box" style="bottom:80px; right:20px;">
+            <strong id="p-name">-</strong> <span id="p-lvl"></span>
+            <div class="hp-bar"><div id="p-hp-fill" class="hp-fill"></div></div>
+            <div id="p-xp-txt" style="font-size:10px">XP: 0/0</div>
         </div>
     </div>
+    
+    <div id="log"></div>
+</div>
 
-    <div id="controls">
-        <div id="move-buttons"></div>
-        <button class="btn btn-system" onclick="iniciarCombateIA()">Buscar Oponente</button>
-        <button class="btn btn-system" onclick="saveGame()">Guardar Código</button>
-    </div>
+<div id="controls">
+    <div id="action-buttons"></div>
+    <div style="width:100%; height:1px; background:#444; margin:5px 0;"></div>
+    <button class="btn" style="background:#555; color:white" onclick="abrirCodigo()">Unirse/Código</button>
+    <button class="btn" style="background:#27ae60; color:white" onclick="curarEquipo()">Pocion Total</button>
+</div>
 
 <script>
-// --- DATOS TÉCNICOS ---
-const DATA = {
-    'Charmander': { hp: 39, atk: 12, emoji: '🔥', evo: { lvl: 16, to: 'Charmeleon' }, moves: [{ lvl: 1, n: 'Arañazo', p: 40 }, { lvl: 7, n: 'Ascuas', p: 45 }] },
-    'Charmeleon': { hp: 58, atk: 18, emoji: '🦖', evo: { lvl: 36, to: 'Charizard' }, moves: [{ lvl: 1, n: 'Lanzallamas', p: 90 }] },
-    'Rowlet': { hp: 45, atk: 10, emoji: '🦉', evo: { lvl: 17, to: 'Dartrix' }, moves: [{ lvl: 1, n: 'Follaje', p: 40 }] },
-    'Froakie': { hp: 41, atk: 11, emoji: '🐸', evo: { lvl: 16, to: 'Frogadier' }, moves: [{ lvl: 1, n: 'Burbuja', p: 40 }] }
+// --- BASE DE DATOS EXTENDIDA ---
+const POKEDEX = {
+    'Charmander': { hp: 39, atk: 52, emoji: '🔥', type: 'Fuego', evo: { lvl: 16, to: 'Charmeleon' }, moves: [{ lvl: 1, n: 'Arañazo', p: 40 }, { lvl: 7, n: 'Ascuas', p: 40 }] },
+    'Rowlet': { hp: 68, atk: 55, emoji: '🦉', type: 'Planta', evo: { lvl: 17, to: 'Dartrix' }, moves: [{ lvl: 1, n: 'Placaje', p: 40 }, { lvl: 8, n: 'Follaje', p: 40 }] },
+    'Froakie': { hp: 41, atk: 56, emoji: '🐸', type: 'Agua', evo: { lvl: 16, to: 'Frogadier' }, moves: [{ lvl: 1, n: 'Destructor', p: 40 }, { lvl: 5, n: 'Burbuja', p: 40 }] },
+    'Pidgey': { hp: 40, atk: 45, emoji: '🐦', type: 'Normal', evo: { lvl: 18, to: 'Pidgeotto' }, moves: [{ lvl: 1, n: 'Tornado', p: 40 }] },
+    'Rattata': { hp: 30, atk: 56, emoji: '🐭', type: 'Normal', moves: [{ lvl: 1, n: 'Placaje', p: 40 }] },
+    'Caterpie': { hp: 45, atk: 30, emoji: '🐛', type: 'Bicho', moves: [{ lvl: 1, n: 'Placaje', p: 35 }] }
 };
 
 class Pokemon {
-    constructor(name, level) {
-        this.name = name;
+    constructor(species, level) {
+        this.species = species;
         this.level = level;
         this.xp = 0;
-        this.maxHp = DATA[name].hp + (level * 3);
+        const data = POKEDEX[species];
+        this.maxHp = Math.floor(0.01 * (2 * data.hp + 20) * level) + level + 10;
         this.hp = this.maxHp;
-        this.atk = DATA[name].atk + level;
+        this.atk = data.atk;
+        this.emoji = data.emoji;
     }
+}
 
-    gainXp(amount) {
-        this.xp += amount;
-        let nextLevel = Math.pow(this.level, 3);
-        addLog(`${this.name} ganó ${amount} XP!`);
-        if(this.xp >= nextLevel) {
-            this.level++;
-            addLog(`¡Nivel subido a ${this.level}!`);
-            if(DATA[this.name].evo && this.level >= DATA[this.name].evo.lvl) {
-                this.name = DATA[this.name].evo.to;
-                addLog(`¡Evolucionó a ${this.name}!`);
-            }
+let equipo = [];
+let activoIdx = 0;
+let rival = null;
+
+// --- SISTEMA DE INICIO Y GUARDADO ---
+function init() {
+    const save = localStorage.getItem('pokeRogueSave');
+    if (save) {
+        cargarDatos(JSON.parse(save));
+        addLog("Progreso cargado automáticamente.");
+    } else {
+        mostrarSeleccionStarter();
+    }
+}
+
+function mostrarSeleccionStarter() {
+    const overlay = document.getElementById('overlay');
+    overlay.innerHTML = "<h2>Elige tu Starter</h2><div style='display:flex'>" +
+        ['Charmander', 'Rowlet', 'Froakie'].map(s => `
+            <div class="starter-card" onclick="elegirStarter('${s}')">
+                <div style="font-size:50px">${POKEDEX[s].emoji}</div>
+                <p>${s}</p>
+            </div>
+        `).join('') + "</div>";
+}
+
+function elegirStarter(s) {
+    equipo = [new Pokemon(s, 5)];
+    document.getElementById('overlay').style.display = 'none';
+    addLog(`¡Has elegido a ${s}!`);
+    saveGame();
+    updateUI();
+}
+
+function saveGame() {
+    const data = { equipo, activoIdx };
+    localStorage.setItem('pokeRogueSave', JSON.stringify(data));
+}
+
+// --- COMBATE Y ACCIONES ---
+function buscarOponente() {
+    const posibles = ['Pidgey', 'Rattata', 'Caterpie', 'Rowlet', 'Froakie', 'Charmander'];
+    const s = posibles[Math.floor(Math.random() * posibles.length)];
+    const lvl = Math.max(2, equipo[activoIdx].level + (Math.random() > 0.5 ? 1 : -1));
+    rival = new Pokemon(s, lvl);
+    addLog(`¡Un ${s} salvaje nivel ${lvl} apareció!`);
+    updateUI();
+}
+
+function ejecutarTurno(move) {
+    if (!rival) return;
+    const p = equipo[activoIdx];
+    
+    // Jugador ataca
+    let dmg = Math.floor((move.p * (p.level/10)) + 5);
+    rival.hp -= dmg;
+    addLog(`${p.species} usó ${move.n} (-${dmg} HP)`);
+
+    if (rival.hp <= 0) {
+        rival.hp = 0;
+        addLog(`¡${rival.species} debilitado!`);
+        p.xp += rival.level * 25;
+        verificarNivel(p);
+        rival = null;
+    } else {
+        // Rival ataca
+        setTimeout(() => {
+            let rdmg = Math.floor(10 + (rival.level/2));
+            p.hp -= rdmg;
+            addLog(`${rival.species} responde con Placaje (-${rdmg} HP)`);
+            if(p.hp <= 0) { p.hp = 0; addLog(`¡${p.species} se ha debilitado!`); }
+            updateUI();
+        }, 600);
+    }
+    updateUI();
+    saveGame();
+}
+
+function capturar() {
+    if(!rival) return;
+    addLog("Lanzando PokeBall...");
+    const chance = (1 - (rival.hp / rival.maxHp)) + 0.1;
+    if (Math.random() < chance && equipo.length < 6) {
+        addLog(`¡Capturaste a ${rival.species}!`);
+        equipo.push(rival);
+        rival = null;
+    } else {
+        addLog("¡Se escapó!");
+    }
+    updateUI();
+}
+
+function curarEquipo() {
+    equipo.forEach(p => p.hp = p.maxHp);
+    addLog("Equipo curado al 100%.");
+    updateUI();
+}
+
+// --- UTILIDADES ---
+function verificarNivel(p) {
+    const meta = p.level * 100;
+    if (p.xp >= meta) {
+        p.level++;
+        p.xp = 0;
+        addLog(`¡${p.species} subió al nivel ${p.level}!`);
+        const evo = POKEDEX[p.species].evo;
+        if(evo && p.level >= evo.lvl) {
+            p.species = evo.to;
+            p.emoji = POKEDEX[p.species].emoji;
+            addLog(`¡Increíble! Evolucionó a ${p.species}`);
         }
     }
 }
 
-// --- LÓGICA DE ESTADO ---
-let player = new Pokemon('Charmander', 5);
-let enemy = null;
-let turn = true;
-
 function addLog(msg) {
-    const log = document.getElementById('battle-log');
-    log.innerHTML += `<div class="log-entry">> ${msg}</div>`;
-    log.scrollTop = log.scrollHeight;
+    const log = document.getElementById('log');
+    log.innerHTML = `<div class="log-entry">> ${msg}</div>` + log.innerHTML;
 }
 
 function updateUI() {
-    document.getElementById('p-name').innerText = player.name;
-    document.getElementById('p-lvl').innerText = `Lv.${player.level}`;
-    document.getElementById('p-hp-fill').style.width = `${(player.hp/player.maxHp)*100}%`;
-    document.getElementById('p-xp').innerText = `XP: ${player.xp}/${Math.pow(player.level, 3)}`;
-    document.getElementById('p-sprite').innerText = DATA[player.name].emoji;
+    const p = equipo[activoIdx];
+    document.getElementById('p-name').innerText = p.species;
+    document.getElementById('p-lvl').innerText = "Lv." + p.level;
+    document.getElementById('p-hp-fill').style.width = (p.hp / p.maxHp * 100) + "%";
+    document.getElementById('p-xp-txt').innerText = `XP: ${p.xp}/${p.level * 100}`;
+    document.getElementById('p-sprite').innerText = p.emoji;
 
-    if(enemy) {
-        document.getElementById('e-name').innerText = enemy.name;
-        document.getElementById('e-lvl').innerText = `Lv.${enemy.level}`;
-        document.getElementById('e-hp-fill').style.width = `${(enemy.hp/enemy.maxHp)*100}%`;
-        document.getElementById('e-sprite').innerText = DATA[enemy.name].emoji;
+    if (rival) {
+        document.getElementById('e-name').innerText = rival.species;
+        document.getElementById('e-lvl').innerText = "Lv." + rival.level;
+        document.getElementById('e-hp-fill').style.width = (rival.hp / rival.maxHp * 100) + "%";
+        document.getElementById('e-sprite').innerText = rival.emoji;
     }
-}
 
-function iniciarCombateIA() {
-    const pokes = ['Rowlet', 'Froakie', 'Charmander'];
-    enemy = new Pokemon(pokes[Math.floor(Math.random()*3)], player.level);
-    addLog(`¡Aparece ${enemy.name} salvaje!`);
-    renderMoves();
-    updateUI();
-}
-
-function renderMoves() {
-    const container = document.getElementById('move-buttons');
+    // Botones de acción
+    const container = document.getElementById('action-buttons');
     container.innerHTML = "";
-    DATA[player.name].moves.forEach(m => {
-        if(player.level >= m.lvl) {
+    if (rival) {
+        POKEDEX[p.species].moves.forEach(m => {
             let b = document.createElement('button');
             b.className = "btn btn-move";
             b.innerText = m.n;
             b.onclick = () => ejecutarTurno(m);
             container.appendChild(b);
-        }
-    });
+        });
+        container.innerHTML += `<button class="btn btn-item" onclick="capturar()">PokeBall</button>`;
+    } else {
+        container.innerHTML = `<button class="btn" style="background:#e67e22" onclick="buscarOponente()">Buscar Oponente</button>`;
+        container.innerHTML += `<button class="btn btn-pkmn" onclick="abrirMenuEquipo()">Equipo</button>`;
+    }
 }
 
-function ejecutarTurno(move) {
-    if(!enemy || enemy.hp <= 0) return;
+function abrirMenuEquipo() {
+    const overlay = document.getElementById('overlay');
+    overlay.style.display = 'flex';
+    overlay.innerHTML = "<h2>Tu Equipo</h2>" + equipo.map((p, i) => `
+        <div class="starter-card" style="width:200px" onclick="cambiarActivo(${i})">
+            ${p.emoji} ${p.species} (Lv.${p.level}) - HP: ${p.hp}/${p.maxHp}
+        </div>
+    `).join('') + `<button class="btn" onclick="document.getElementById('overlay').style.display='none'">Cerrar</button>`;
+}
 
-    // Ataque Jugador
-    let dmg = Math.floor(move.p * (player.atk / 20));
-    enemy.hp -= dmg;
-    addLog(`${player.name} usó ${move.n} e hizo ${dmg} de daño.`);
-    
-    if(enemy.hp <= 0) {
-        addLog(`¡${enemy.name} debilitado!`);
-        player.gainXp(enemy.level * 20);
-        enemy = null;
-    } else {
-        // Contraataque IA
-        setTimeout(() => {
-            let eDmg = Math.floor(40 * (enemy.atk / 20));
-            player.hp -= eDmg;
-            addLog(`${enemy.name} responde con un ataque de ${eDmg} de daño.`);
-            updateUI();
-        }, 600);
-    }
+function cambiarActivo(i) {
+    activoIdx = i;
+    document.getElementById('overlay').style.display = 'none';
+    addLog(`¡Adelante ${equipo[i].species}!`);
     updateUI();
 }
 
-function saveGame() {
-    const code = btoa(JSON.stringify({p: player}));
-    alert("Código de equipo: " + code);
+function abrirCodigo() {
+    const code = prompt("Pega el código de tu amigo para cargar su equipo o copia el tuyo:", btoa(JSON.stringify(equipo)));
+    if(code && code.length > 20) {
+        try {
+            equipo = JSON.parse(atob(code));
+            activoIdx = 0;
+            updateUI();
+            addLog("Equipo importado con éxito.");
+        } catch(e) { alert("Código inválido"); }
+    }
 }
 
-updateUI();
+init();
 </script>
 </body>
 </html>
